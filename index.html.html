@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>CBT ASAT ONLINE MTs Nurul Huda</title>
+
+<style>
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:Arial, Helvetica, sans-serif;
+}
+
+body{
+background:linear-gradient(135deg,#0f172a,#1e293b);
+color:white;
+overflow:hidden;
+}
+
+.container{
+width:100%;
+height:100vh;
+display:flex;
+justify-content:center;
+align-items:center;
+padding:20px;
+}
+
+.login-box{
+width:100%;
+max-width:500px;
+background:rgba(255,255,255,0.08);
+backdrop-filter:blur(15px);
+padding:40px;
+border-radius:20px;
+box-shadow:0 10px 30px rgba(0,0,0,0.5);
+}
+
+h1{
+text-align:center;
+margin-bottom:10px;
+font-size:32px;
+}
+
+h2{
+text-align:center;
+margin-bottom:30px;
+font-size:18px;
+color:#cbd5e1;
+}
+
+input,select,button{
+width:100%;
+padding:15px;
+border:none;
+border-radius:12px;
+margin-top:15px;
+font-size:16px;
+}
+
+input,select{
+background:#f1f5f9;
+}
+
+button{
+background:#22c55e;
+color:white;
+font-weight:bold;
+cursor:pointer;
+transition:0.3s;
+}
+
+button:hover{
+background:#16a34a;
+}
+
+.hidden{
+display:none;
+}
+
+.topbar{
+position:fixed;
+top:0;
+left:0;
+width:100%;
+background:#020617;
+padding:15px;
+display:flex;
+justify-content:space-between;
+align-items:center;
+z-index:999;
+}
+
+.timer{
+background:red;
+padding:10px 20px;
+border-radius:10px;
+font-size:18px;
+font-weight:bold;
+}
+
+iframe{
+width:100%;
+height:100vh;
+border:none;
+margin-top:60px;
+background:white;
+}
+
+.warning{
+position:fixed;
+top:0;
+left:0;
+width:100%;
+background:red;
+padding:10px;
+text-align:center;
+font-weight:bold;
+display:none;
+z-index:9999;
+}
+
+.info{
+margin-top:20px;
+text-align:center;
+font-size:15px;
+color:#facc15;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="warning" id="warning">
+TAB PINDAH TERDETEKSI! KEMBALI KE UJIAN!
+</div>
+
+<div class="container" id="loginPage">
+
+<div class="login-box">
+
+<h1>CBT ASAT ONLINE</h1>
+
+<h2>
+MTs Nurul Huda Pagedongan<br>
+Tahun Pelajaran 2025-2026
+</h2>
+
+<input type="text" id="nama" placeholder="Masukkan Nama Siswa">
+
+<select id="kelas">
+<option value="">Pilih Kelas</option>
+<option value="VII">Kelas VII</option>
+<option value="VIII">Kelas VIII</option>
+</select>
+
+<button onclick="login()">MASUK CBT</button>
+
+<div class="info">
+Ujian akan otomatis terbuka sesuai jadwal
+</div>
+
+</div>
+</div>
+
+<div id="cbtPage" class="hidden">
+
+<div class="topbar">
+
+<div id="siswaInfo"></div>
+
+<div class="timer" id="timer">
+00:00:00
+</div>
+
+</div>
+
+<iframe id="formFrame"></iframe>
+
+</div>
+
+<script>
+
+const jadwal = [
+
+{
+nama:"Bahasa Indonesia",
+mulai:"2026-05-25T07:30:00",
+selesai:"2026-05-25T09:30:00",
+
+links:{
+VII:"https://forms.gle/fuBHFPK7jCzXsfrz8",
+VIII:"https://forms.gle/LJ8DC7Qvw1CLGGWB9"
+}
+},
+
+{
+nama:"Al Qur'an Hadits",
+mulai:"2026-05-25T10:00:00",
+selesai:"2026-05-25T11:30:00",
+
+links:{
+VII:"https://forms.gle/smQmDPMJ6H8ix9gPA",
+VIII:"https://forms.gle/o1E2f3hTJLHpgWGZ9"
+}
+}
+];
+
+function login(){
+
+const nama = document.getElementById("nama").value;
+const kelas = document.getElementById("kelas").value;
+
+if(nama === "" || kelas === ""){
+
+alert("Lengkapi data siswa!");
+return;
+
+}
+
+localStorage.setItem("nama",nama);
+localStorage.setItem("kelas",kelas);
+
+document.getElementById("loginPage").classList.add("hidden");
+document.getElementById("cbtPage").classList.remove("hidden");
+
+document.getElementById("siswaInfo").innerHTML =
+nama + " | Kelas " + kelas;
+
+fullscreen();
+
+cekJadwal();
+
+setInterval(cekJadwal,1000);
+
+}
+
+function cekJadwal(){
+
+const now = new Date();
+
+let ujianAktif = null;
+
+jadwal.forEach(j=>{
+
+const mulai = new Date(j.mulai);
+const selesai = new Date(j.selesai);
+
+if(now >= mulai && now <= selesai){
+
+ujianAktif = j;
+
+}
+
+});
+
+if(ujianAktif){
+
+const kelas = localStorage.getItem("kelas");
+
+document.getElementById("formFrame").src =
+ujianAktif.links[kelas];
+
+const selesai = new Date(ujianAktif.selesai);
+
+const sisa = selesai - now;
+
+const jam = Math.floor(sisa / (1000*60*60));
+const menit = Math.floor((sisa % (1000*60*60)) / (1000*60));
+const detik = Math.floor((sisa % (1000*60)) / 1000);
+
+document.getElementById("timer").innerHTML =
+`${String(jam).padStart(2,'0')}:${String(menit).padStart(2,'0')}:${String(detik).padStart(2,'0')}`;
+
+}else{
+
+document.getElementById("formFrame").src = "";
+
+document.getElementById("timer").innerHTML =
+"BELUM WAKTU UJIAN";
+
+}
+
+}
+
+function fullscreen(){
+
+let elem = document.documentElement;
+
+if(elem.requestFullscreen){
+
+elem.requestFullscreen();
+
+}
+
+}
+
+document.addEventListener("visibilitychange",function(){
+
+if(document.hidden){
+
+document.getElementById("warning").style.display="block";
+
+}else{
+
+document.getElementById("warning").style.display="none";
+
+}
+
+});
+
+document.addEventListener("contextmenu",function(e){
+
+e.preventDefault();
+
+});
+
+document.onkeydown = function(e){
+
+if(e.keyCode == 123){
+
+return false;
+
+}
+
+if(e.ctrlKey && e.shiftKey && e.keyCode == 'I'.charCodeAt(0)){
+
+return false;
+
+}
+
+if(e.ctrlKey && e.keyCode == 'U'.charCodeAt(0)){
+
+return false;
+
+}
+
+};
+
+</script>
+
+</body>
+</html>
